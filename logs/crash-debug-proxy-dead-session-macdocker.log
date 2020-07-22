@@ -1,0 +1,402 @@
++ ctlsock=/run/vpp/cli-vpp1.sock
++ ip netns add client
++ ip link add vpp0 type veth peer name client
++ ip link set dev client netns client
++ ip netns exec client ip link set dev lo up
++ ip netns exec client ip link set dev client up
++ ip netns exec client ip addr add 10.0.0.1/24 dev client
++ ip link set dev vpp0 up
++ ip netns exec client tc qdisc add dev client root netem loss 15% delay 100ms 300ms duplicate 10%
++ ip netns add server
++ ip link add vpp1 type veth peer name server
++ ip link set dev server netns server
++ ip netns exec server ip link set dev lo up
++ ip netns exec server ip link set dev server up
++ ip netns exec server ip addr add 10.0.1.1/24 dev server
++ ip link set dev vpp1 up
++ mkdir /www
++ truncate -s 100 /www/dl
++ cat
++ ip netns exec server nginx
++ echo run
++ config_vpp
++ [[ ! -e /run/vpp/cli-vpp1.sock ]]
++ sleep 1
++ echo bt
++ gdb -x /tmp/cmds --args /usr/bin/vpp unix '{' nodaemon cli-listen /run/vpp/cli-vpp1.sock '}' api-segment '{' prefix vpp1 '}' cpu '{' workers 0 '}'
+GNU gdb (Ubuntu 8.1-0ubuntu3.2) 8.1.0.20180409-git
+Copyright (C) 2018 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "x86_64-linux-gnu".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<http://www.gnu.org/software/gdb/bugs/>.
+Find the GDB manual and other documentation resources online at:
+<http://www.gnu.org/software/gdb/documentation/>.
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from /usr/bin/vpp...Reading symbols from /usr/lib/debug/.build-id/f9/317128c2a0835e72bf8bf269def2f2c945fb28.debug...done.
+done.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
++ [[ ! -e /run/vpp/cli-vpp1.sock ]]
++ sleep 1
+/usr/bin/vpp[47]: clib_elf_parse_file: open `linux-vdso.so.1': No such file or directory
+/usr/bin/vpp[47]: clib_elf_parse_file: open `linux-vdso.so.1': No such file or directory
+/usr/bin/vpp[47]: clib_sysfs_prealloc_hugepages:261: pre-allocating 19 additional 2048K hugepages on numa node 0
+/usr/bin/vpp[47]: clib_sysfs_prealloc_hugepages:261: pre-allocating 19 additional 2048K hugepages on numa node 0
+/usr/bin/vpp[47]: vat-plug/load: vat_plugin_register: oddbuf plugin not loaded...
+/usr/bin/vpp[47]: vat-plug/load: vat_plugin_register: oddbuf plugin not loaded...
+
++ [[ ! -e /run/vpp/cli-vpp1.sock ]]
++ ctl create host-interface name vpp0
++ vppctl -s /run/vpp/cli-vpp1.sock create host-interface name vpp0
+host-vpp0
++ ctl set interface state host-vpp0 up
++ vppctl -s /run/vpp/cli-vpp1.sock set interface state host-vpp0 up
++ ctl set interface ip address host-vpp0 10.0.0.2/24
++ vppctl -s /run/vpp/cli-vpp1.sock set interface ip address host-vpp0 10.0.0.2/24
++ ctl create host-interface name vpp1
++ vppctl -s /run/vpp/cli-vpp1.sock create host-interface name vpp1
+host-vpp1
++ ctl set interface state host-vpp1 up
++ vppctl -s /run/vpp/cli-vpp1.sock set interface state host-vpp1 up
++ ctl set interface ip address host-vpp1 10.0.1.2/24
++ vppctl -s /run/vpp/cli-vpp1.sock set interface ip address host-vpp1 10.0.1.2/24
++ ctl http static server www-root /www uri tcp://0.0.0.0/80 cache-size 2m
++ vppctl -s /run/vpp/cli-vpp1.sock http static server www-root /www uri tcp://0.0.0.0/80 cache-size 2m
++ ctl test proxy server server-uri tcp://10.0.0.2/555 client-uri tcp://10.0.1.1/666
++ vppctl -s /run/vpp/cli-vpp1.sock test proxy server server-uri tcp://10.0.0.2/555 client-uri tcp://10.0.1.1/666
+/usr/bin/vpp[47]: proxy_reset_callback:208: Reset session [0:613][T] 10.0.0.2:555->10.0.0.1:55030           CLOSED         
+ index: 611 cfg: TSO off flags:  timers: 
+ snd_una 1 snd_nxt 1 snd_una_max 1 rcv_nxt 41 rcv_las 41
+ snd_wnd 29312 rcv_wnd 64512 rcv_wscale 10 snd_wl1 1310205828 snd_wl2 1
+ flight size 0 out space 4350 rcv_wnd_av 64512 tsval_recent 1951425385
+ tsecr 798480489 tsecr_last_ack 0 tsval_recent_age 43 snd_mss 1448
+ rto 361 rto_boff 1 srtt 129 us 334.000 rttvar 58 rtt_ts 0.0000 rtt_seq 4254200551
+ next_node 0 opaque 0x0 fib_index 0
+ cong:   none algo cubic cwnd 4350 ssthresh 2147483647 bytes_acked 1
+         cc space 4350 prev_cwnd 0 prev_ssthresh 0
+         snd_cong 4254200551 dupack 0 limited_tx 4254200551
+         rxt_bytes 0 rxt_delivered 0 rxt_head 4254200551 rxt_ts 798480866
+         prr_start 4254200551 prr_delivered 0 prr space 0
+ pacer: rate 33720 bucket 0 t/p .034 last_update .029 s idle 6450
+ transport: flags 0x1
+ Rx fifo: cursize 0 nitems 65496 has_event 1 min_alloc 8192
+          head 40 tail 40 segment manager 2
+          vpp session 2443 thread 0 app session 0 thread 0
+          ooo pool 0 active elts newest 4294967295
+ Tx fifo: cursize 0 nitems 65536 has_event 1 min_alloc 8192
+          head 361 tail 361 segment manager 2
+          vpp session 613 thread 0 app session 0 thread 0
+          ooo pool 0 active elts newest 4294967295
+ session: state: transport-closing opaque: 0x0 flags: custom-fifo-tuning
+/usr/bin/vpp[47]: proxy_reset_callback:208: Reset session [0:613][T] 10.0.0.2:555->10.0.0.1:55030           CLOSED         
+ index: 611 cfg: TSO off flags:  timers: 
+ snd_una 1 snd_nxt 1 snd_una_max 1 rcv_nxt 41 rcv_las 41
+ snd_wnd 29312 rcv_wnd 64512 rcv_wscale 10 snd_wl1 1310205828 snd_wl2 1
+ flight size 0 out space 4350 rcv_wnd_av 64512 tsval_recent 1951425385
+ tsecr 798480489 tsecr_last_ack 0 tsval_recent_age 43 snd_mss 1448
+ rto 361 rto_boff 1 srtt 129 us 334.000 rttvar 58 rtt_ts 0.0000 rtt_seq 4254200551
+ next_node 0 opaque 0x0 fib_index 0
+ cong:   none algo cubic cwnd 4350 ssthresh 2147483647 bytes_acked 1
+         cc space 4350 prev_cwnd 0 prev_ssthresh 0
+         snd_cong 4254200551 dupack 0 limited_tx 4254200551
+         rxt_bytes 0 rxt_delivered 0 rxt_head 4254200551 rxt_ts 798480866
+         prr_start 4254200551 prr_delivered 0 prr space 0
+ pacer: rate 33720 bucket 0 t/p .034 last_update .029 s idle 6450
+ transport: flags 0x1
+ Rx fifo: cursize 0 nitems 65496 has_event 1 min_alloc 8192
+          head 40 tail 40 segment manager 2
+          vpp session 2443 thread 0 app session 0 thread 0
+          ooo pool 0 active elts newest 4294967295
+ Tx fifo: cursize 0 nitems 65536 has_event 1 min_alloc 8192
+          head 361 tail 361 segment manager 2
+          vpp session 613 thread 0 app session 0 thread 0
+          ooo pool 0 active elts newest 4294967295
+ session: state: transport-closing opaque: 0x0 flags: custom-fifo-tuning
+/usr/bin/vpp[47]: proxy_reset_callback:208: Reset session [0:578][T] 10.0.0.2:555->10.0.0.1:58996           CLOSED         
+ index: 576 cfg: TSO off flags:  timers: 
+ snd_una 1 snd_nxt 362 snd_una_max 362 rcv_nxt 41 rcv_las 41
+ snd_wnd 29312 rcv_wnd 64512 rcv_wscale 10 snd_wl1 1522424067 snd_wl2 1
+ flight size 361 out space 3989 rcv_wnd_av 64512 tsval_recent 1951425589
+ tsecr 798480474 tsecr_last_ack 0 tsval_recent_age 104 snd_mss 1448
+ rto 379 rto_boff 0 srtt 131 us 349.000 rttvar 62 rtt_ts 192.8319 rtt_seq 362
+ next_node 0 opaque 0x0 fib_index 0
+ cong:   none algo cubic cwnd 4350 ssthresh 2147483647 bytes_acked 1
+         cc space 3989 prev_cwnd 0 prev_ssthresh 0
+         snd_cong 2571655548 dupack 0 limited_tx 2571655548
+         rxt_bytes 0 rxt_delivered 0 rxt_head 2571655548 rxt_ts 798480927
+         prr_start 2571655548 prr_delivered 0 prr space 0
+ pacer: rate 33206 bucket 1099 t/p .033 last_update .047 s idle 6550
+ transport: flags 0x1
+ Rx fifo: cursize 0 nitems 65496 has_event 0 min_alloc 8192
+          head 40 tail 40 segment manager 2
+          vpp session 2423 thread 0 app session 0 thread 0
+          ooo pool 0 active elts newest 4294967295
+ Tx fifo: cursize 0 nitems 65536 has_event 0 min_alloc 8192
+          head 361 tail 361 segment manager 2
+          vpp session 578 thread 0 app session 0 thread 0
+          ooo pool 0 active elts newest 4294967295
+ session: state: transport-closing opaque: 0x0 flags: custom-fifo-tuning
+/usr/bin/vpp[47]: proxy_reset_callback:208: Reset session [0:578][T] 10.0.0.2:555->10.0.0.1:58996           CLOSED         
+ index: 576 cfg: TSO off flags:  timers: 
+ snd_una 1 snd_nxt 362 snd_una_max 362 rcv_nxt 41 rcv_las 41
+ snd_wnd 29312 rcv_wnd 64512 rcv_wscale 10 snd_wl1 1522424067 snd_wl2 1
+ flight size 361 out space 3989 rcv_wnd_av 64512 tsval_recent 1951425589
+ tsecr 798480474 tsecr_last_ack 0 tsval_recent_age 104 snd_mss 1448
+ rto 379 rto_boff 0 srtt 131 us 349.000 rttvar 62 rtt_ts 192.8319 rtt_seq 362
+ next_node 0 opaque 0x0 fib_index 0
+ cong:   none algo cubic cwnd 4350 ssthresh 2147483647 bytes_acked 1
+         cc space 3989 prev_cwnd 0 prev_ssthresh 0
+         snd_cong 2571655548 dupack 0 limited_tx 2571655548
+         rxt_bytes 0 rxt_delivered 0 rxt_head 2571655548 rxt_ts 798480927
+         prr_start 2571655548 prr_delivered 0 prr space 0
+ pacer: rate 33206 bucket 1099 t/p .033 last_update .047 s idle 6550
+ transport: flags 0x1
+ Rx fifo: cursize 0 nitems 65496 has_event 0 min_alloc 8192
+          head 40 tail 40 segment manager 2
+          vpp session 2423 thread 0 app session 0 thread 0
+          ooo pool 0 active elts newest 4294967295
+ Tx fifo: cursize 0 nitems 65536 has_event 0 min_alloc 8192
+          head 361 tail 361 segment manager 2
+          vpp session 578 thread 0 app session 0 thread 0
+          ooo pool 0 active elts newest 4294967295
+ session: state: transport-closing opaque: 0x0 flags: custom-fifo-tuning
+/usr/bin/vpp[47]: proxy_reset_callback:208: Reset session [0:506][T] 10.0.0.2:555->10.0.0.1:56530           CLOSED         
+ index: 504 cfg: TSO off flags:  timers: 
+ snd_una 1 snd_nxt 362 snd_una_max 362 rcv_nxt 41 rcv_las 41
+ snd_wnd 29312 rcv_wnd 64512 rcv_wscale 10 snd_wl1 3502287342 snd_wl2 1
+ flight size 361 out space 3989 rcv_wnd_av 64512 tsval_recent 1951425557
+ tsecr 798480453 tsecr_last_ack 0 tsval_recent_age 104 snd_mss 1448
+ rto 401 rto_boff 0 srtt 133 us 370.000 rttvar 67 rtt_ts 192.8319 rtt_seq 362
+ next_node 0 opaque 0x0 fib_index 0
+ cong:   none algo cubic cwnd 4350 ssthresh 2147483647 bytes_acked 1
+         cc space 3989 prev_cwnd 0 prev_ssthresh 0
+         snd_cong 3083912717 dupack 0 limited_tx 3083912717
+         rxt_bytes 0 rxt_delivered 0 rxt_head 3083912717 rxt_ts 798480927
+         prr_start 3083912717 prr_delivered 0 prr space 0
+ pacer: rate 32706 bucket 1099 t/p .033 last_update .047 s idle 6650
+ transport: flags 0x1
+ Rx fifo: cursize 0 nitems 65496 has_event 0 min_alloc 8192
+          head 40 tail 40 segment manager 2
+          vpp session 2464 thread 0 app session 0 thread 0
+          ooo pool 0 active elts newest 4294967295
+ Tx fifo: cursize 0 nitems 65536 has_event 0 min_alloc 8192
+          head 361 tail 361 segment manager 2
+          vpp session 506 thread 0 app session 0 thread 0
+          ooo pool 0 active elts newest 4294967295
+ session: state: transport-closing opaque: 0x0 flags: custom-fifo-tuning
+/usr/bin/vpp[47]: proxy_reset_callback:208: Reset session [0:506][T] 10.0.0.2:555->10.0.0.1:56530           CLOSED         
+ index: 504 cfg: TSO off flags:  timers: 
+ snd_una 1 snd_nxt 362 snd_una_max 362 rcv_nxt 41 rcv_las 41
+ snd_wnd 29312 rcv_wnd 64512 rcv_wscale 10 snd_wl1 3502287342 snd_wl2 1
+ flight size 361 out space 3989 rcv_wnd_av 64512 tsval_recent 1951425557
+ tsecr 798480453 tsecr_last_ack 0 tsval_recent_age 104 snd_mss 1448
+ rto 401 rto_boff 0 srtt 133 us 370.000 rttvar 67 rtt_ts 192.8319 rtt_seq 362
+ next_node 0 opaque 0x0 fib_index 0
+ cong:   none algo cubic cwnd 4350 ssthresh 2147483647 bytes_acked 1
+         cc space 3989 prev_cwnd 0 prev_ssthresh 0
+         snd_cong 3083912717 dupack 0 limited_tx 3083912717
+         rxt_bytes 0 rxt_delivered 0 rxt_head 3083912717 rxt_ts 798480927
+         prr_start 3083912717 prr_delivered 0 prr space 0
+ pacer: rate 32706 bucket 1099 t/p .033 last_update .047 s idle 6650
+ transport: flags 0x1
+ Rx fifo: cursize 0 nitems 65496 has_event 0 min_alloc 8192
+          head 40 tail 40 segment manager 2
+          vpp session 2464 thread 0 app session 0 thread 0
+          ooo pool 0 active elts newest 4294967295
+ Tx fifo: cursize 0 nitems 65536 has_event 0 min_alloc 8192
+          head 361 tail 361 segment manager 2
+          vpp session 506 thread 0 app session 0 thread 0
+          ooo pool 0 active elts newest 4294967295
+ session: state: transport-closing opaque: 0x0 flags: custom-fifo-tuning
+/usr/bin/vpp[47]: proxy_reset_callback:208: Reset session [0:910][T] 10.0.0.2:555->10.0.0.1:39702           CLOSED         
+ index: 908 cfg: TSO off flags:  timers: 
+ snd_una 1 snd_nxt 1 snd_una_max 1 rcv_nxt 41 rcv_las 41
+ snd_wnd 29312 rcv_wnd 64512 rcv_wscale 10 snd_wl1 771893233 snd_wl2 1
+ flight size 0 out space 4350 rcv_wnd_av 64512 tsval_recent 1951425460
+ tsecr 798480556 tsecr_last_ack 0 tsval_recent_age 51 snd_mss 1448
+ rto 406 rto_boff 1 srtt 134 us 375.000 rttvar 68 rtt_ts 0.0000 rtt_seq 3835121447
+ next_node 0 opaque 0x0 fib_index 0
+ cong:   none algo cubic cwnd 4350 ssthresh 2147483647 bytes_acked 1
+         cc space 4350 prev_cwnd 0 prev_ssthresh 0
+         snd_cong 3835121447 dupack 0 limited_tx 3835121447
+         rxt_bytes 0 rxt_delivered 0 rxt_head 3835121447 rxt_ts 798480982
+         prr_start 3835121447 prr_delivered 0 prr space 0
+ pacer: rate 32462 bucket 0 t/p .032 last_update .039 s idle 6700
+ transport: flags 0x1
+ Rx fifo: cursize 0 nitems 65496 has_event 1 min_alloc 8192
+          head 40 tail 40 segment manager 2
+          vpp session 2997 thread 0 app session 0 thread 0
+          ooo pool 0 active elts newest 4294967295
+ Tx fifo: cursize 0 nitems 65536 has_event 1 min_alloc 8192
+          head 361 tail 361 segment manager 2
+          vpp session 910 thread 0 app session 0 thread 0
+          ooo pool 0 active elts newest 4294967295
+ session: state: transport-closing opaque: 0x0 flags: custom-fifo-tuning
+/usr/bin/vpp[47]: proxy_reset_callback:208: Reset session [0:910][T] 10.0.0.2:555->10.0.0.1:39702           CLOSED         
+ index: 908 cfg: TSO off flags:  timers: 
+ snd_una 1 snd_nxt 1 snd_una_max 1 rcv_nxt 41 rcv_las 41
+ snd_wnd 29312 rcv_wnd 64512 rcv_wscale 10 snd_wl1 771893233 snd_wl2 1
+ flight size 0 out space 4350 rcv_wnd_av 64512 tsval_recent 1951425460
+ tsecr 798480556 tsecr_last_ack 0 tsval_recent_age 51 snd_mss 1448
+ rto 406 rto_boff 1 srtt 134 us 375.000 rttvar 68 rtt_ts 0.0000 rtt_seq 3835121447
+ next_node 0 opaque 0x0 fib_index 0
+ cong:   none algo cubic cwnd 4350 ssthresh 2147483647 bytes_acked 1
+         cc space 4350 prev_cwnd 0 prev_ssthresh 0
+         snd_cong 3835121447 dupack 0 limited_tx 3835121447
+         rxt_bytes 0 rxt_delivered 0 rxt_head 3835121447 rxt_ts 798480982
+         prr_start 3835121447 prr_delivered 0 prr space 0
+ pacer: rate 32462 bucket 0 t/p .032 last_update .039 s idle 6700
+ transport: flags 0x1
+ Rx fifo: cursize 0 nitems 65496 has_event 1 min_alloc 8192
+          head 40 tail 40 segment manager 2
+          vpp session 2997 thread 0 app session 0 thread 0
+          ooo pool 0 active elts newest 4294967295
+ Tx fifo: cursize 0 nitems 65536 has_event 1 min_alloc 8192
+          head 361 tail 361 segment manager 2
+          vpp session 910 thread 0 app session 0 thread 0
+          ooo pool 0 active elts newest 4294967295
+ session: state: transport-closing opaque: 0x0 flags: custom-fifo-tuning
+/usr/bin/vpp[47]: proxy_reset_callback:208: Reset session [0:1409][T] 10.0.0.2:555->10.0.0.1:50110          CLOSED         
+ index: 1407 cfg: TSO off flags:  timers: 
+ snd_una 1 snd_nxt 1 snd_una_max 1 rcv_nxt 41 rcv_las 41
+ snd_wnd 29312 rcv_wnd 64512 rcv_wscale 10 snd_wl1 4134444853 snd_wl2 1
+ flight size 0 out space 4350 rcv_wnd_av 64512 tsval_recent 1951425799
+ tsecr 798480662 tsecr_last_ack 0 tsval_recent_age 66 snd_mss 1448
+ rto 347 rto_boff 1 srtt 127 us 323.000 rttvar 55 rtt_ts 0.0000 rtt_seq 292087620
+ next_node 0 opaque 0x0 fib_index 0
+ cong:   none algo cubic cwnd 4350 ssthresh 2147483647 bytes_acked 1
+         cc space 4350 prev_cwnd 0 prev_ssthresh 0
+         snd_cong 292087620 dupack 0 limited_tx 292087620
+         rxt_bytes 0 rxt_delivered 0 rxt_head 292087620 rxt_ts 798481051
+         prr_start 292087620 prr_delivered 0 prr space 0
+ pacer: rate 34251 bucket 0 t/p .034 last_update .050 s idle 6350
+ transport: flags 0x1
+ Rx fifo: cursize 40 nitems 65536 has_event 0 min_alloc 8192
+          head 0 tail 40 segment manager 2
+          vpp session 1409 thread 0 app session 0 thread 0
+          ooo pool 0 active elts newest 4294967295
+ Tx fifo: cursize 0 nitems 65536 has_event 0 min_alloc 8192
+          head 0 tail 0 segment manager 2
+          vpp session 1409 thread 0 app session 0 thread 0
+          ooo pool 0 active elts newest 0
+ session: state: transport-closing opaque: 0x0 flags: custom-fifo-tuning
+/usr/bin/vpp[47]: proxy_reset_callback:208: Reset session [0:1409][T] 10.0.0.2:555->10.0.0.1:50110          CLOSED         
+ index: 1407 cfg: TSO off flags:  timers: 
+ snd_una 1 snd_nxt 1 snd_una_max 1 rcv_nxt 41 rcv_las 41
+ snd_wnd 29312 rcv_wnd 64512 rcv_wscale 10 snd_wl1 4134444853 snd_wl2 1
+ flight size 0 out space 4350 rcv_wnd_av 64512 tsval_recent 1951425799
+ tsecr 798480662 tsecr_last_ack 0 tsval_recent_age 66 snd_mss 1448
+ rto 347 rto_boff 1 srtt 127 us 323.000 rttvar 55 rtt_ts 0.0000 rtt_seq 292087620
+ next_node 0 opaque 0x0 fib_index 0
+ cong:   none algo cubic cwnd 4350 ssthresh 2147483647 bytes_acked 1
+         cc space 4350 prev_cwnd 0 prev_ssthresh 0
+         snd_cong 292087620 dupack 0 limited_tx 292087620
+         rxt_bytes 0 rxt_delivered 0 rxt_head 292087620 rxt_ts 798481051
+         prr_start 292087620 prr_delivered 0 prr space 0
+ pacer: rate 34251 bucket 0 t/p .034 last_update .050 s idle 6350
+ transport: flags 0x1
+ Rx fifo: cursize 40 nitems 65536 has_event 0 min_alloc 8192
+          head 0 tail 40 segment manager 2
+          vpp session 1409 thread 0 app session 0 thread 0
+          ooo pool 0 active elts newest 4294967295
+ Tx fifo: cursize 0 nitems 65536 has_event 0 min_alloc 8192
+          head 0 tail 0 segment manager 2
+          vpp session 1409 thread 0 app session 0 thread 0
+          ooo pool 0 active elts newest 0
+ session: state: transport-closing opaque: 0x0 flags: custom-fifo-tuning
+/usr/bin/vpp[47]: proxy_reset_callback:208: Reset session [0:500][T] 10.0.0.2:555->10.0.0.1:56260           CLOSED         
+ index: 498 cfg: TSO off flags:  timers: 
+ snd_una 1 snd_nxt 362 snd_una_max 362 rcv_nxt 41 rcv_las 41
+ snd_wnd 29312 rcv_wnd 64512 rcv_wscale 10 snd_wl1 2359516422 snd_wl2 1
+ flight size 361 out space 3989 rcv_wnd_av 64512 tsval_recent 1951425549
+ tsecr 798480451 tsecr_last_ack 0 tsval_recent_age 120 snd_mss 1448
+ rto 527 rto_boff 0 srtt 147 us 480.000 rttvar 95 rtt_ts 192.9501 rtt_seq 362
+ next_node 0 opaque 0x0 fib_index 0
+ cong:   none algo cubic cwnd 4350 ssthresh 2147483647 bytes_acked 1
+         cc space 3989 prev_cwnd 0 prev_ssthresh 0
+         snd_cong 100430234 dupack 0 limited_tx 100430234
+         rxt_bytes 0 rxt_delivered 0 rxt_head 100430234 rxt_ts 798481051
+         prr_start 100430234 prr_delivered 0 prr space 0
+ pacer: rate 29591 bucket 1099 t/p .029 last_update .050 s idle 7350
+ transport: flags 0x1
+ Rx fifo: cursize 0 nitems 65496 has_event 0 min_alloc 8192
+          head 40 tail 40 segment manager 2
+          vpp session 3010 thread 0 app session 0 thread 0
+          ooo pool 0 active elts newest 4294967295
+ Tx fifo: cursize 0 nitems 65536 has_event 0 min_alloc 8192
+          head 361 tail 361 segment manager 2
+          vpp session 500 thread 0 app session 0 thread 0
+          ooo pool 0 active elts newest 4294967295
+ session: state: transport-closing opaque: 0x0 flags: custom-fifo-tuning
+/usr/bin/vpp[47]: proxy_reset_callback:208: Reset session [0:500][T] 10.0.0.2:555->10.0.0.1:56260           CLOSED         
+ index: 498 cfg: TSO off flags:  timers: 
+ snd_una 1 snd_nxt 362 snd_una_max 362 rcv_nxt 41 rcv_las 41
+ snd_wnd 29312 rcv_wnd 64512 rcv_wscale 10 snd_wl1 2359516422 snd_wl2 1
+ flight size 361 out space 3989 rcv_wnd_av 64512 tsval_recent 1951425549
+ tsecr 798480451 tsecr_last_ack 0 tsval_recent_age 120 snd_mss 1448
+ rto 527 rto_boff 0 srtt 147 us 480.000 rttvar 95 rtt_ts 192.9501 rtt_seq 362
+ next_node 0 opaque 0x0 fib_index 0
+ cong:   none algo cubic cwnd 4350 ssthresh 2147483647 bytes_acked 1
+         cc space 3989 prev_cwnd 0 prev_ssthresh 0
+         snd_cong 100430234 dupack 0 limited_tx 100430234
+         rxt_bytes 0 rxt_delivered 0 rxt_head 100430234 rxt_ts 798481051
+         prr_start 100430234 prr_delivered 0 prr space 0
+ pacer: rate 29591 bucket 1099 t/p .029 last_update .050 s idle 7350
+ transport: flags 0x1
+ Rx fifo: cursize 0 nitems 65496 has_event 0 min_alloc 8192
+          head 40 tail 40 segment manager 2
+          vpp session 3010 thread 0 app session 0 thread 0
+          ooo pool 0 active elts newest 4294967295
+ Tx fifo: cursize 0 nitems 65536 has_event 0 min_alloc 8192
+          head 361 tail 361 segment manager 2
+          vpp session 500 thread 0 app session 0 thread 0
+          ooo pool 0 active elts newest 4294967295
+ session: state: transport-closing opaque: 0x0 flags: custom-fifo-tuning
+/usr/bin/vpp[47]: /src/vpp/src/plugins/hs_apps/proxy.c:383 (active_open_connected_callback) assertion `! pool_is_free (pm->sessions, _e)' fails
+/usr/bin/vpp[47]: /src/vpp/src/plugins/hs_apps/proxy.c:383 (active_open_connected_callback) assertion `! pool_is_free (pm->sessions, _e)' fails
+
+Program received signal SIGABRT, Aborted.
+0x00007ffff4723f47 in raise () from /lib/x86_64-linux-gnu/libc.so.6
+#0  0x00007ffff4723f47 in raise () from /lib/x86_64-linux-gnu/libc.so.6
+#1  0x00007ffff47258b1 in abort () from /lib/x86_64-linux-gnu/libc.so.6
+#2  0x0000000000407193 in os_panic () at /src/vpp/src/vpp/vnet/main.c:371
+#3  0x00007ffff5604619 in debugger () at /src/vpp/src/vppinfra/error.c:84
+#4  0x00007ffff5604397 in _clib_error (how_to_die=2, function_name=0x0, line_number=0, 
+    fmt=0x7fffb106c5c0 "%s:%d (%s) assertion `%s' fails") at /src/vpp/src/vppinfra/error.c:143
+---Type <return> to continue, or q <return> to quit---
+#5  0x00007fffb106b134 in active_open_connected_callback (app_index=3, opaque=546, 
+    s=0x7fffb5d959c0, err=SESSION_E_NONE) at /src/vpp/src/plugins/hs_apps/proxy.c:383
+#6  0x00007ffff745f870 in app_worker_connect_notify (app_wrk=0x7fffb560b080, s=0x7fffb5d959c0, 
+    err=SESSION_E_NONE, opaque=546) at /src/vpp/src/vnet/session/application_worker.c:408
+#7  0x00007ffff73f39ea in session_stream_connect_notify (tc=0x7fffb62d67c0, err=SESSION_E_NONE)
+    at /src/vpp/src/vnet/session/session.c:813
+#8  0x00007ffff681ce67 in tcp46_syn_sent_inline (vm=0x7ffff648fb80 <vlib_global_main>, 
+    node=0x7fffb4a94a80, from_frame=0x7fffb5a0d6c0, is_ip4=1)
+    at /src/vpp/src/vnet/tcp/tcp_input.c:1966
+#9  0x00007ffff681c94a in tcp4_syn_sent_node_fn_hsw (vm=0x7ffff648fb80 <vlib_global_main>, 
+    node=0x7fffb4a94a80, from_frame=0x7fffb5a0d6c0) at /src/vpp/src/vnet/tcp/tcp_input.c:2057
+#10 0x00007ffff61d6af6 in dispatch_node (vm=0x7ffff648fb80 <vlib_global_main>, 
+    node=0x7fffb4a94a80, type=VLIB_NODE_TYPE_INTERNAL, dispatch_state=VLIB_NODE_STATE_POLLING, 
+    frame=0x7fffb5a0d6c0, last_time_stamp=1836506423453450) at /src/vpp/src/vlib/main.c:1194
+#11 0x00007ffff61d75d7 in dispatch_pending_node (vm=0x7ffff648fb80 <vlib_global_main>, 
+    pending_frame_index=13, last_time_stamp=1836506423453450) at /src/vpp/src/vlib/main.c:1353
+#12 0x00007ffff61d11c5 in vlib_main_or_worker_loop (vm=0x7ffff648fb80 <vlib_global_main>, 
+    is_main=1) at /src/vpp/src/vlib/main.c:1848
+#13 0x00007ffff61d2f4a in vlib_main_loop (vm=0x7ffff648fb80 <vlib_global_main>)
+    at /src/vpp/src/vlib/main.c:1976
+#14 0x00007ffff61d2d17 in vlib_main (vm=0x7ffff648fb80 <vlib_global_main>, input=0x7fffb4debfa8)
+    at /src/vpp/src/vlib/main.c:2222
+#15 0x00007ffff625b18e in thread0 (arg=140737325366144) at /src/vpp/src/vlib/unix/main.c:660
+---Type <return> to continue, or q <return> to quit---
+#16 0x00007ffff56287a4 in clib_calljmp () at /src/vpp/src/vppinfra/longjmp.S:123
+#17 0x00007fffffffd730 in ?? ()
+#18 0x00007ffff625ad03 in vlib_unix_main (argc=17, argv=0x7fffffffec68)
+    at /src/vpp/src/vlib/unix/main.c:733
+#19 0x0000000000406878 in main (argc=17, argv=0x7fffffffec68)
+    at /src/vpp/src/vpp/vnet/main.c:296
