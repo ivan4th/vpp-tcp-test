@@ -10,6 +10,10 @@ Prebuilt image names are:
 * `quay.io/travelping/upf:testing-tcp-fixes_v20.09-rc0-228-ge91a08234_debug` - debug image
 * `quay.io/travelping/upf:testing-tcp-fixes_v20.09-rc0-228-ge91a08234_release` - release image
 
+Despite the name, these images don't really include UPF and are based
+on current upstream VPP source (see the section about building the
+images below).
+
 The image name defaults to the release one.
 
 This sets up networking, starts nginx webserver, and then starts VPP
